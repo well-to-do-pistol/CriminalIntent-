@@ -148,6 +148,14 @@ class CrimeListFragment : Fragment() {
             } else {
                 View.GONE
             }
+            //给盲人
+            val solvedOrNot = if (crime.isSolved){
+                getString(R.string.crime_solved)
+            }else{
+                getString(R.string.crime_not_solved)
+            }
+            solvedImageView.contentDescription = solvedOrNot
+            itemView.contentDescription = getString(R.string.crime_summary, titleTextView.text, dateTextView.text, solvedOrNot)
         }
 
         override fun onClick(v: View) {

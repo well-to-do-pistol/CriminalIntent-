@@ -18,5 +18,10 @@
     <string name="crime_photo_button_description">陋习现场拍照按钮</string>
     <string name="crime_photo_no_image_description">陋习现场照片 (未拍照)</string>
     <string name="crime_photo_image_description">陋习现场照片 (已拍照)</string>
+    <string name="crime_solved">这条陋习已经解决了</string>
+    <string name="crime_not_solved">这条陋习还未被解决</string>
+    <string name="crime_summary">该陋习汇总: 内容: %1s, 发生时间: %2s, %3s .</string>
+    <string name="crime_date_label">日期 : </string>
+    <string name="crime_suspect_label">嫌疑人 : </string>
     <string name="photo_updated_announcement">照片更新了.</string>
 </resources>

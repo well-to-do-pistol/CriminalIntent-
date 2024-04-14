@@ -19,6 +19,11 @@
     <string name="crime_photo_button_description">Take photo of crime scene</string>
     <string name="crime_photo_no_image_description">Crime scene photo (not set)</string>
     <string name="crime_photo_image_description">Crime scene photo (set)</string>
+    <string name="crime_solved">this crime is solved</string>
+    <string name="crime_not_solved">this crime is not solved</string>
+    <string name="crime_summary">Summary of this crime: Content: %1s, Time of Occurrence: %2s, %3s .</string>
+    <string name="crime_date_label">Date : </string>
+    <string name="crime_suspect_label">suspect : </string>
     <string name="photo_updated_announcement">Photo updated.</string>
 
 </resources>
