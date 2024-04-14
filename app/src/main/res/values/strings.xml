@@ -30,4 +30,5 @@
     <string name="no_crime_tip">There are no crimes</string>
     <string name="crime_add_button_label">Add Crime</string>
 
+    <string name="crime_time_label">Time</string>
 </resources>

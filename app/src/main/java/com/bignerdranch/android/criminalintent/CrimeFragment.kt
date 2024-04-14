@@ -37,17 +37,20 @@ import java.util.UUID
 private const val TAG = "CrimeFragment"
 private const val ARG_CRIME_ID = "crime_id"
 private const val DIALOG_DATE = "DialogDate"
+private const val DIALOG_TIME = "DialogTime"
 private const val REQUEST_DATE = 0 //请求代码
+private const val REQUEST_TIME = 3 //请求代码(Time)
 private const val REQUEST_CONTACT = 1
 private const val REQUEST_PHOTO = 2
 private const val DATE_FORMAT = "EEE, MMM, dd"
 
-class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
+class CrimeFragment : Fragment(), DatePickerFragment.Callbacks , TimePickerFragment.Callbacks {
     private lateinit var crime: Crime
     private lateinit var photoFile: File
     private lateinit var photoUri: Uri
     private lateinit var titleField: EditText
     private lateinit var dateButton: Button
+    private lateinit var timeButton: Button
     private lateinit var solvedCheckBox: CheckBox
     private lateinit var reportButton: Button
     private lateinit var suspectButton: Button
@@ -77,6 +80,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
 
         titleField = view.findViewById(R.id.crime_title) as EditText
         dateButton = view.findViewById(R.id.crime_date) as Button
+        timeButton = view.findViewById(R.id.crime_time) as Button
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
         reportButton = view.findViewById(R.id.crime_report) as Button
         suspectButton = view.findViewById(R.id.crime_suspect) as Button
@@ -147,6 +151,15 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
                 //把数据从CrimeFragment传给DatePickerFragment:添加参数在Bundle, 设置arugments, newInstance时候传递, onCreat或其他函数get拿到
                 //把数据从DatePickerFragment传给CrimeFragment, newInstance时候给它设置目标fragment为CrimeFragment, 创建回调接口然后在CrimeFragment实现
                 show(this@CrimeFragment.requireFragmentManager(), DIALOG_DATE)
+            } //this是外部的DatePickerFragment
+        }
+
+        timeButton.setOnClickListener {
+            TimePickerFragment.newInstance(crime.date).apply { //把当前crime的data传给DatePickerFragment
+                setTargetFragment(this@CrimeFragment, REQUEST_TIME) //设置DatePickerFragment的目标fragment为CrimeFragment
+                //把数据从CrimeFragment传给DatePickerFragment:添加参数在Bundle, 设置arugments, newInstance时候传递, onCreat或其他函数get拿到
+                //把数据从TimePickerFragment传给CrimeFragment, newInstance时候给它设置目标fragment为CrimeFragment, 创建回调接口然后在CrimeFragment实现
+                show(this@CrimeFragment.requireFragmentManager(), DIALOG_TIME)
             } //this是外部的DatePickerFragment
         }
 
@@ -286,6 +299,11 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
         updateUI()
     } //把拿到的date保存(在DatePickerDialog强制转换CrimeFragment为Callbacks接口并调用函数传递数据就行了), 需要监听器
 
+    override fun onTimeSelected(date: Date) {
+        crime.date = date //stop时保存
+        updateUI()
+    }
+
     ////托管activity(Callbacks)在newInstance时给fragment添加参数, fragment再在onCreate时候拿到, 保存Id在ViewModel, 并利用联动保存crime, 在fragment添加了观察者, 一联动就更新当前crime, 并通过它刷新UI
     private fun updateUI() {
         titleField.setText(crime.title)
@@ -419,4 +437,6 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
             }
         }
     }
+
+
 }

@@ -28,4 +28,6 @@
 
     <string name="no_crime_tip">这里还没有陋习记录</string>
     <string name="crime_add_button_label">添加陋习</string>
+
+    <string name="crime_time_label">时间</string>
 </resources>
