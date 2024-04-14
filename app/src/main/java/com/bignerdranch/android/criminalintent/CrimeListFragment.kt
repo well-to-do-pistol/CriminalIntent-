@@ -9,6 +9,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -81,6 +82,14 @@ class CrimeListFragment : Fragment() {
     // 因此，“viewLifecycleOwner”是有效的，可以在这两个回调之间使用。
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val addButton = view.findViewById<Button>(R.id.add_crime_button)
+        addButton.setOnClickListener {
+            val crime = Crime()
+            crimeListViewModel.addCrime(crime)
+            callbacks?.onCrimeSelected(crime.id)
+        }
+
         crimeListViewModel.crimeListLiveData.observe( //除非应用退出, 否则观察者会死死盯着然后更新
             viewLifecycleOwner, //防止CrimeListFragment销毁还观察导致报错, 让其和观察者周期同步
             //同步的是fragment视图的生命周期, 而不是fragment实例的, 本质上其实不同
@@ -121,8 +130,23 @@ class CrimeListFragment : Fragment() {
     }
 
     private fun updateUI(crimes: List<Crime>) {
-        adapter = CrimeAdapter(crimes) //只接受传入的crimes了
-        crimeRecyclerView.adapter = adapter //在onCreateView的同时创建并添加adapter
+//        adapter = CrimeAdapter(crimes) //只接受传入的crimes了
+//        crimeRecyclerView.adapter = adapter //在onCreateView的同时创建并添加adapter
+
+        val emptyView = view?.findViewById<TextView>(R.id.empty_view)
+        val addButton = view?.findViewById<Button>(R.id.add_crime_button)
+
+        if (crimes.isEmpty()) {
+            crimeRecyclerView.visibility = View.GONE
+            emptyView?.visibility = View.VISIBLE
+            addButton?.visibility = View.VISIBLE
+        } else {
+            crimeRecyclerView.visibility = View.VISIBLE
+            emptyView?.visibility = View.GONE
+            addButton?.visibility = View.GONE
+            adapter = CrimeAdapter(crimes)
+            crimeRecyclerView.adapter = adapter
+        }
     }
 
 

@@ -27,4 +27,7 @@
     <string name="crime_suspect_label">suspect : </string>
     <string name="photo_updated_announcement">Photo updated.</string>
 
+    <string name="no_crime_tip">There are no crimes</string>
+    <string name="crime_add_button_label">Add Crime</string>
+
 </resources>
