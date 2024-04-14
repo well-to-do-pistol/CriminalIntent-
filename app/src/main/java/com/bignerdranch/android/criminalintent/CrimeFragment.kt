@@ -10,7 +10,6 @@ import android.provider.ContactsContract
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
-import android.text.format.DateFormat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -26,7 +25,9 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.bignerdranch.android.criminalintent.PictureUtils.Companion.getScaledBitmap
 import java.io.File
+import java.text.DateFormat
 import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 private const val TAG = "CrimeFragment"
@@ -225,7 +226,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
     ////托管activity(Callbacks)在newInstance时给fragment添加参数, fragment再在onCreate时候拿到, 保存Id在ViewModel, 并利用联动保存crime, 在fragment添加了观察者, 一联动就更新当前crime, 并通过它刷新UI
     private fun updateUI() {
         titleField.setText(crime.title)
-        dateButton.text = crime.date.toString() //时间也是需要按时更新的
+        dateButton.text = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.DEFAULT, Locale.getDefault()).format(crime.date)
         solvedCheckBox.apply {
             isChecked = crime.isSolved
             jumpDrawablesToCurrentState() //跳过动画
@@ -303,7 +304,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
             getString(R.string.crime_report_unsolved)
         }
 
-        val dateString = DateFormat.format(DATE_FORMAT, crime.date).toString()
+        val dateString = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.DEFAULT, Locale.getDefault()).format(this.crime.date)
         var suspect = if (crime.suspect.isBlank()) {
             getString(R.string.crime_report_no_suspect)
         } else {
