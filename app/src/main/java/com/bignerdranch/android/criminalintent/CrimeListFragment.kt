@@ -16,7 +16,9 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import java.text.DateFormat
 import java.util.Locale
@@ -33,6 +35,20 @@ class CrimeListFragment : Fragment() {
     }
 
     private var callbacks: Callbacks? = null
+
+    private val DIFF_CALLBACK: DiffUtil.ItemCallback<Crime> = object : DiffUtil.ItemCallback<Crime>() {
+        override fun areItemsTheSame(oldItem: Crime, newItem: Crime): Boolean {
+            // 如果两个项代表同一个对象，则返回 true。.
+            Log.i(TAG, "compare id")
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: Crime, newItem: Crime): Boolean {
+            // // 如果项目的内容没有改变，则返回 true。
+            Log.i(TAG, "compare crime")
+            return oldItem == newItem
+        }
+    } //“ListAdapter”将使用该实例来确定犯罪列表中发生的更改。
 
     //- **初始化控制**：`lateinit` 允许变量在声明之后和使用之前的任何时候进行初始化。 “by lazy”在第一次访问变量时初始化该变量。
     //- **可变性**：`lateinit` 用于可变属性（`var`），而 `bylazy` 用于只读属性（`val`）。
@@ -144,8 +160,13 @@ class CrimeListFragment : Fragment() {
             crimeRecyclerView.visibility = View.VISIBLE
             emptyView?.visibility = View.GONE
             addButton?.visibility = View.GONE
+//            adapter = CrimeAdapter(crimes)
+//            crimeRecyclerView.adapter = adapter
             adapter = CrimeAdapter(crimes)
             crimeRecyclerView.adapter = adapter
+            Log.i(TAG, "before submit: Got crimes ${crimes.size}")
+            adapter?.submitList(crimes)
+            Log.d(TAG, "updateUI: Submitted ${crimes.size} crimes to the adapter.")
         }
     }
 
@@ -164,6 +185,7 @@ class CrimeListFragment : Fragment() {
         }
 
         fun bind(crime: Crime) { //绑定数据, 显示真实视图数据
+            Log.d(TAG, "Binding crime with ID: ${crime.id}")
             this.crime = crime
             titleTextView.text = this.crime.title
             dateTextView.text = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.DEFAULT, Locale.getDefault()).format(this.crime.date)
@@ -188,7 +210,7 @@ class CrimeListFragment : Fragment() {
     }//ViewHolder引用列表项视图
 
     private inner class CrimeAdapter(var crimes: List<Crime>)
-        : RecyclerView.Adapter<CrimeHolder>() { //创建ViewHolder, 绑定其和模型层数据
+        : ListAdapter<Crime, CrimeHolder>(DIFF_CALLBACK) { //创建ViewHolder, 绑定其和模型层数据
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int)
                 : CrimeHolder {
