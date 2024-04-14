@@ -14,7 +14,8 @@ data class Crime(@PrimaryKey var id: UUID = UUID.randomUUID(), //只能改成var
                  var title: String = "",
                  var date: Date = Date(),
                  var isSolved: Boolean = false,
-                 var suspect: String = ""){ //需要增加版本号
+                 var suspect: String = "",
+                 var suspectPhoneNumber: String = ""){ //需要增加版本号
 
     val photoFileName
         get() = "IMG_$id.jpg"

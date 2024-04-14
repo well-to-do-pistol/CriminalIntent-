@@ -1,5 +1,6 @@
 package com.bignerdranch.android.criminalintent
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -19,6 +20,9 @@ import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -47,6 +51,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
     private lateinit var solvedCheckBox: CheckBox
     private lateinit var reportButton: Button
     private lateinit var suspectButton: Button
+    private lateinit var phoneCallButton: Button
     private lateinit var photoButton: ImageButton
     private lateinit var photoView: ImageView
     private val crimeDetailViewModel: CrimeDetailViewModel by lazy {
@@ -75,6 +80,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
         reportButton = view.findViewById(R.id.crime_report) as Button
         suspectButton = view.findViewById(R.id.crime_suspect) as Button
+        phoneCallButton = view.findViewById(R.id.crime_phoneCall) as Button
         photoButton = view.findViewById(R.id.crime_camera) as ImageButton
         photoView = view.findViewById(R.id.crime_photo) as ImageView
 
@@ -158,22 +164,79 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
             }
         }
 
+//        suspectButton.apply {
+//            val pickContactIntent =
+//                Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI) //ContactsContract.Contacts.CONTENT_URI指示要从数据库中找到某个联系人(手机自带的Contacts数据库)
+//            setOnClickListener { //要数据用startActivityForResult, 加入请求代码
+//                startActivityForResult(pickContactIntent, REQUEST_CONTACT)
+//            }
+//
+//            //pickContactIntent.addCategory(Intent.CATEGORY_HOME) //用来验证按钮禁用是否成功
+//            val packageManager: PackageManager = requireActivity().packageManager //安卓PackageManager拥有所有设备activitty和组件信息
+//            val resolvedActivity: ResolveInfo? =
+//                packageManager.resolveActivity(pickContactIntent,
+//                    PackageManager.MATCH_DEFAULT_ONLY) //只会匹配带MATCH_DEFAULT_ONLY的activity
+//            if (resolvedActivity == null) { //只要没有默认联系人应用都会禁用按钮
+////                isEnabled = false
+//            }
+//        }
+
         suspectButton.apply {
+            //获取对片段当前关联的“Activity”的引用。 “requireActivity()”方法在“Fragment”中使用，如果该片段当前未附加到活动，它将抛出“IllegalStateException”
+            val activity = requireActivity()
+            //使用 ContextCompat.checkSelfPermission 来检查应用程序是否已授予读取用户联系人的权限。 它将权限检查的结果与“PackageManager.PERMISSION_GRANTED”进行比较。 如果结果不相等，则表示未获得许可。
+
             val pickContactIntent =
-                Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI) //ContactsContract.Contacts.CONTENT_URI指示要从数据库中找到某个联系人(手机自带的Contacts数据库)
+                Intent(
+                    Intent.ACTION_PICK,
+                    ContactsContract.Contacts.CONTENT_URI
+                ) //ContactsContract.Contacts.CONTENT_URI指示要从数据库中找到某个联系人(手机自带的Contacts数据库)
             setOnClickListener { //要数据用startActivityForResult, 加入请求代码
-                startActivityForResult(pickContactIntent, REQUEST_CONTACT)
+                if (ContextCompat.checkSelfPermission(
+                        activity,
+                        Manifest.permission.READ_CONTACTS
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    ActivityCompat.requestPermissions(
+                        activity,
+                        arrayOf(Manifest.permission.READ_CONTACTS), //- 这是第二个参数，指定要请求的权限。 在本例中，它请求“READ_CONTACTS”权限。 它被包装在 arrayOf() 中，因为该方法接受权限数组，允许一次请求多个权限。
+                        MY_PERMISSIONS_REQUEST_READ_CONTACTS //应用程序定义的整数请求代码。 它用作此特定权限请求的标识符。 您可以使用您选择的任何整数值来定义该常量。 此代码在“onRequestPermissionsResult”回调方法中返回，因此您可以识别正在接收的权限结果。
+                    )
+                    return@setOnClickListener //这个onClick的退出很妙, 太庙了(1.return可以在你没授权的时候及时退出并询问防止在进去报错; 2.允许也要退出顺便刷新状态以便进不去)
+                } else {
+                    startActivityForResult(pickContactIntent, REQUEST_CONTACT)
+                }
             }
 
             //pickContactIntent.addCategory(Intent.CATEGORY_HOME) //用来验证按钮禁用是否成功
-            val packageManager: PackageManager = requireActivity().packageManager //安卓PackageManager拥有所有设备activitty和组件信息
+            val packageManager: PackageManager =
+                requireActivity().packageManager //安卓PackageManager拥有所有设备activitty和组件信息
             val resolvedActivity: ResolveInfo? =
-                packageManager.resolveActivity(pickContactIntent,
-                    PackageManager.MATCH_DEFAULT_ONLY) //只会匹配带MATCH_DEFAULT_ONLY的activity
-            if (resolvedActivity == null) { //只要没有默认联系人应用都会禁用按钮
-//                isEnabled = false
+                packageManager.resolveActivity(
+                    pickContactIntent,
+                    PackageManager.MATCH_DEFAULT_ONLY
+                ) //只会匹配带MATCH_DEFAULT_ONLY的activity
+        }
+
+        phoneCallButton.apply {
+            setOnClickListener {
+                if (crime.suspectPhoneNumber.isNotEmpty()) {
+                    val dialIntent = Intent(Intent.ACTION_DIAL).apply {
+                        data = Uri.parse("tel:${crime.suspectPhoneNumber}")
+                    }
+                    startActivity(dialIntent)
+                } else {
+                    Toast.makeText(context, "No suspect phone number found", Toast.LENGTH_SHORT).show()
+                }
             }
         }
+
+        val activity = requireActivity()
+        ActivityCompat.requestPermissions(
+            activity,
+            arrayOf(Manifest.permission.READ_CONTACTS),
+            MY_PERMISSIONS_REQUEST_READ_CONTACTS
+        )
 
         photoButton.apply {
             val packageManager: PackageManager = requireActivity().packageManager
@@ -258,31 +321,60 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) { //(返回包含在intent的URI数据时, 会添加一个标志授权给应用可以使用联系人数据一次)
         when {
             resultCode != Activity.RESULT_OK -> return
+//            requestCode == REQUEST_CONTACT && data != null -> {
+//                val contactUri: Uri? = data.data //此行从数据中获取所选联系人的“Uri”。 这个“Uri”用于查询联系人详细信息。
+//                //此行定义查询应返回哪些字段。 在本例中，我们只对联系人的显示名称感兴趣。
+//                val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
+//
+//                //使用 `requireActivity().contentResolver` 来使用 `Uri` 查询联系人数据。
+//                // “query”函数参数是“Uri”、要返回的字段（只是显示名称）以及用于选择、选择参数和排序顺序的三个“null”值
+//                //用contentResolver那contentProvider的数据库(安卓深度与联系人数据绑定的数据库api)
+//                val cursor = contactUri?.let { //防止contactUri为null
+//                    requireActivity().contentResolver
+//                        .query(it, queryFields, null, null, null)
+//                }
+//                cursor?.use { //cursor只会包含一个记录
+//                    // Verify cursor contains at least one result
+//                    if (it.count == 0) {
+//                        return
+//                    }
+//
+//                    // Pull out the first column of the first row of data -
+//                    // that is your suspect's name
+//                    it.moveToFirst()
+//                    val suspect = it.getString(0)
+//                    crime.suspect = suspect
+//                    crimeDetailViewModel.saveCrime(crime) //保存有嫌疑人的crime
+//                    suspectButton.text = suspect
+//                }
+//            }
             requestCode == REQUEST_CONTACT && data != null -> {
-                val contactUri: Uri? = data.data //此行从数据中获取所选联系人的“Uri”。 这个“Uri”用于查询联系人详细信息。
-                //此行定义查询应返回哪些字段。 在本例中，我们只对联系人的显示名称感兴趣。
-                val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
+                val contactUri: Uri = data.data ?: return
+                val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME, ContactsContract.Contacts._ID)
+                val cursor = requireActivity().contentResolver.query(contactUri, queryFields, null, null, null)
+                cursor?.use {
+                    if (it.moveToFirst()) {
+                        val suspect = it.getString(0)
+                        val suspectId = it.getString(1)
+                        Log.i(TAG, "suspectId ${suspectId}")
+                        crime.suspect = suspect
+                        suspectButton.text = suspect
 
-                //使用 `requireActivity().contentResolver` 来使用 `Uri` 查询联系人数据。
-                // “query”函数参数是“Uri”、要返回的字段（只是显示名称）以及用于选择、选择参数和排序顺序的三个“null”值
-                //用contentResolver那contentProvider的数据库(安卓深度与联系人数据绑定的数据库api)
-                val cursor = contactUri?.let { //防止contactUri为null
-                    requireActivity().contentResolver
-                        .query(it, queryFields, null, null, null)
-                }
-                cursor?.use { //cursor只会包含一个记录
-                    // Verify cursor contains at least one result
-                    if (it.count == 0) {
-                        return
+                        val phoneURI = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
+                        val phoneQueryFields = arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                        val phoneWhereClause = "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?"
+                        Log.i(TAG, "phoneWhereClause ${phoneWhereClause}")
+                        val phoneQueryParameters = arrayOf(suspectId)
+                        val phoneCursor = requireActivity().contentResolver.query(phoneURI, phoneQueryFields, phoneWhereClause, phoneQueryParameters, null)
+                        phoneCursor?.use { cursor ->
+                            if (cursor.moveToFirst()) {
+                                val phoneNumber = cursor.getString(0)
+                                Log.i(TAG, "phoneNumber ${phoneNumber}")
+                                crime.suspectPhoneNumber = phoneNumber
+                                crimeDetailViewModel.saveCrime(crime)
+                            }
+                        }
                     }
-
-                    // Pull out the first column of the first row of data -
-                    // that is your suspect's name
-                    it.moveToFirst()
-                    val suspect = it.getString(0)
-                    crime.suspect = suspect
-                    crimeDetailViewModel.saveCrime(crime) //保存有嫌疑人的crime
-                    suspectButton.text = suspect
                 }
             }
 
@@ -316,8 +408,9 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
     }
 
     companion object {
-
+        const val MY_PERMISSIONS_REQUEST_READ_CONTACTS = 2
         fun newInstance(crimeId: UUID): CrimeFragment {
+
             val args = Bundle().apply { //Bundle相当于arguments, put参数到Bundle, 在设置fragment的arguments
                 putSerializable(ARG_CRIME_ID, crimeId)
             }

@@ -89,5 +89,13 @@
         android:layout_height="wrap_content"
         android:text="@string/crime_report_text"/>
 
+    <Button
+        android:id="@+id/crime_phoneCall"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/colorAccent"
+        android:text="@string/crime_phoneCall_label"/>
+
 </LinearLayout>
 

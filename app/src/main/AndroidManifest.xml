@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.bignerdranch.android.criminalintent" >
 
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+
     <uses-feature android:name="android.hardware.camera"
         android:required="false"/>
 
