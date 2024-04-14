@@ -289,6 +289,9 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
                 requireActivity().revokeUriPermission(photoUri, //在访问结束或无效访问后, 调用权限关闭文件访问
                     Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                 updatePhotoView()
+                photoView.postDelayed({
+                    photoView.announceForAccessibility(getString(R.string.photo_updated_announcement))
+                }, 1000)  // Delay of 1 second
             }
         }
     }
