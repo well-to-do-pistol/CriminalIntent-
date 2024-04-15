@@ -57,6 +57,7 @@ class CrimeListFragment : Fragment() {
     //在“lateinit”和“by Lazy”之间进行选择取决于该属性是否可变、您计划何时初始化它以及您是否需要线程安全。
     private lateinit var crimeRecyclerView: RecyclerView
     private var adapter: CrimeAdapter? = CrimeAdapter(emptyList())
+//    private var adapter: CrimeAdapter? = CrimeAdapter()
 
     private val crimeListViewModel: CrimeListViewModel by lazy {
         ViewModelProvider(this).get(CrimeListViewModel::class.java)
@@ -88,6 +89,7 @@ class CrimeListFragment : Fragment() {
         crimeRecyclerView.layoutManager = LinearLayoutManager(context)
         crimeRecyclerView.adapter = adapter //启动crimeRecyclerView的时候先把传入了空集合的adapter绑定上
         //之后再调用updateUI在onViewCreated
+
         return view
     }
 
@@ -114,10 +116,10 @@ class CrimeListFragment : Fragment() {
                     Log.i(TAG, "Got crimes ${crimes.size}")
                     updateUI(crimes)
                 }//这里，“Observer”是“Observer”接口的实现，它定义了一个“onChanged()”方法。
-            // 您看到的代码是一个 lambda 表达式，它充当此接口的简洁实现，
-            // 其中“crimes”是传递给“onChanged()”的参数。
-            // `crimes?` 部分使用 Kotlin 的安全调用运算符来确保在继续之前 `crimes` 不为 null。
-            // 如果“crimes”不为空，则 lambda 会记录收到的犯罪数量，并使用“crimes”列表调用“updateUI()”来更新用户界面。
+                // 您看到的代码是一个 lambda 表达式，它充当此接口的简洁实现，
+                // 其中“crimes”是传递给“onChanged()”的参数。
+                // `crimes?` 部分使用 Kotlin 的安全调用运算符来确保在继续之前 `crimes` 不为 null。
+                // 如果“crimes”不为空，则 lambda 会记录收到的犯罪数量，并使用“crimes”列表调用“updateUI()”来更新用户界面。
             })
     }
 
@@ -160,14 +162,28 @@ class CrimeListFragment : Fragment() {
             crimeRecyclerView.visibility = View.VISIBLE
             emptyView?.visibility = View.GONE
             addButton?.visibility = View.GONE
-//            adapter = CrimeAdapter(crimes)
-//            crimeRecyclerView.adapter = adapter
-            adapter = CrimeAdapter(crimes)
-            crimeRecyclerView.adapter = adapter
+
+//            // Check if the adapter is already initialized
+//            if (adapter == null) {
+//                adapter = CrimeAdapter(emptyList())
+//                crimeRecyclerView.adapter = adapter
+//            }
+//
+//            // Update the list in the adapter when the data is loaded
+//            adapter?.submitList(crimes)
+
+            if (adapter == null) {
+                adapter = CrimeAdapter(crimes)
+                crimeRecyclerView.adapter = adapter
+            } else {
+                adapter?.crimes = crimes
+                adapter?.notifyDataSetChanged() // We're directly updating the list here for simplicity
+            }
+
             Log.i(TAG, "before submit: Got crimes ${crimes.size}")
-            adapter?.submitList(crimes)
             Log.d(TAG, "updateUI: Submitted ${crimes.size} crimes to the adapter.")
         }
+        Log.d(TAG, "UI updated with ${crimes.size} crimes")
     }
 
 
@@ -185,7 +201,8 @@ class CrimeListFragment : Fragment() {
         }
 
         fun bind(crime: Crime) { //绑定数据, 显示真实视图数据
-            Log.d(TAG, "Binding crime with ID: ${crime.id}")
+            val startTime = System.nanoTime() // Start timing
+
             this.crime = crime
             titleTextView.text = this.crime.title
             dateTextView.text = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.DEFAULT, Locale.getDefault()).format(this.crime.date)
@@ -202,6 +219,10 @@ class CrimeListFragment : Fragment() {
             }
             solvedImageView.contentDescription = solvedOrNot
             itemView.contentDescription = getString(R.string.crime_summary, titleTextView.text, dateTextView.text, solvedOrNot)
+
+            val endTime = System.nanoTime() // End timing
+            Log.d(TAG, "Time to bind crime with ID ${crime.id}: ${endTime - startTime} ns")
+
         }
 
         override fun onClick(v: View) {
@@ -209,8 +230,10 @@ class CrimeListFragment : Fragment() {
         } //这个函数会传id导致数据更新和fragment的UI刷新
     }//ViewHolder引用列表项视图
 
+    //    private inner class CrimeAdapter(var crimes: List<Crime>)
+//        : ListAdapter<Crime, CrimeHolder>(DIFF_CALLBACK) { //创建ViewHolder, 绑定其和模型层数据
     private inner class CrimeAdapter(var crimes: List<Crime>)
-        : ListAdapter<Crime, CrimeHolder>(DIFF_CALLBACK) { //创建ViewHolder, 绑定其和模型层数据
+        : RecyclerView.Adapter<CrimeHolder>() { //创建ViewHolder, 绑定其和模型层数据
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int)
                 : CrimeHolder {
@@ -226,6 +249,19 @@ class CrimeListFragment : Fragment() {
             holder.bind(crime)
         }
     }
+//    private inner class CrimeAdapter : ListAdapter<Crime, CrimeHolder>(DIFF_CALLBACK) {
+//
+//        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CrimeHolder {
+//            val view = layoutInflater.inflate(R.layout.list_item_crime, parent, false)
+//            return CrimeHolder(view)
+//        }
+//
+//        override fun onBindViewHolder(holder: CrimeHolder, position: Int) {
+//            val crime = getItem(position) // Use getItem to get the crime at the given position
+//            holder.bind(crime)
+//        }
+//    }
+
 
     companion object { //用newInstance可能是因为在初始化之前要配置
         fun newInstance(): CrimeListFragment {
