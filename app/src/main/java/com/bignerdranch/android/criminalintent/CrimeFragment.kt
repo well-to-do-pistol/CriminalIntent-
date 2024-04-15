@@ -21,6 +21,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -33,6 +34,8 @@ import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import android.provider.Settings
+
 
 private const val TAG = "CrimeFragment"
 private const val ARG_CRIME_ID = "crime_id"
@@ -194,6 +197,13 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks , TimePickerFragm
 //            }
 //        }
 
+        val activity = requireActivity()
+        ActivityCompat.requestPermissions(
+            activity,
+            arrayOf(Manifest.permission.READ_CONTACTS),
+            MY_PERMISSIONS_REQUEST_READ_CONTACTS
+        )
+
         suspectButton.apply {
             //获取对片段当前关联的“Activity”的引用。 “requireActivity()”方法在“Fragment”中使用，如果该片段当前未附加到活动，它将抛出“IllegalStateException”
             val activity = requireActivity()
@@ -210,13 +220,39 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks , TimePickerFragm
                         Manifest.permission.READ_CONTACTS
                     ) != PackageManager.PERMISSION_GRANTED
                 ) {
-                    ActivityCompat.requestPermissions(
-                        activity,
-                        arrayOf(Manifest.permission.READ_CONTACTS), //- 这是第二个参数，指定要请求的权限。 在本例中，它请求“READ_CONTACTS”权限。 它被包装在 arrayOf() 中，因为该方法接受权限数组，允许一次请求多个权限。
-                        MY_PERMISSIONS_REQUEST_READ_CONTACTS //应用程序定义的整数请求代码。 它用作此特定权限请求的标识符。 您可以使用您选择的任何整数值来定义该常量。 此代码在“onRequestPermissionsResult”回调方法中返回，因此您可以识别正在接收的权限结果。
-                    )
-                    return@setOnClickListener //这个onClick的退出很妙, 太庙了(1.return可以在你没授权的时候及时退出并询问防止在进去报错; 2.允许也要退出顺便刷新状态以便进不去)
+//                    ActivityCompat.requestPermissions(
+//                        activity,
+//                        arrayOf(Manifest.permission.READ_CONTACTS), //- 这是第二个参数，指定要请求的权限。 在本例中，它请求“READ_CONTACTS”权限。 它被包装在 arrayOf() 中，因为该方法接受权限数组，允许一次请求多个权限。
+//                        MY_PERMISSIONS_REQUEST_READ_CONTACTS //应用程序定义的整数请求代码。 它用作此特定权限请求的标识符。 您可以使用您选择的任何整数值来定义该常量。 此代码在“onRequestPermissionsResult”回调方法中返回，因此您可以识别正在接收的权限结果。
+//                    )
+//                    return@setOnClickListener //这个onClick的退出很妙, 太庙了(1.return可以在你没授权的时候及时退出并询问防止在进去报错; 2.允许也要退出顺便刷新状态以便进不去)
+//
+//
+//                } else {
+//                    startActivityForResult(pickContactIntent, REQUEST_CONTACT)
+//                }
+
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.READ_CONTACTS)) {
+                        // The user has denied the permission but not checked "Don't ask again", so we can ask for the permission again
+                        ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.READ_CONTACTS), MY_PERMISSIONS_REQUEST_READ_CONTACTS)
+                        return@setOnClickListener //这个onClick的退出很妙, 太庙了(1.return可以在你没授权的时候及时退出并询问防止在进去报错; 2.允许也要退出顺便刷新状态以便进不去)
+                    } else {
+                        AlertDialog.Builder(activity)
+                            .setTitle(R.string.setTitle)
+                            .setMessage(R.string.setMessage)
+                            .setPositiveButton(R.string.setPositiveButton) { _, _ ->
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                val uri = Uri.fromParts("package", activity.packageName, null)
+                                intent.data = uri
+                                activity.startActivity(intent)
+                            }
+                            .setNegativeButton(R.string.Cancel) { dialog, _ ->
+                                dialog.dismiss()
+                            }
+                            .show()
+                    }
                 } else {
+                    // Permission has already been granted
                     startActivityForResult(pickContactIntent, REQUEST_CONTACT)
                 }
             }
@@ -243,13 +279,6 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks , TimePickerFragm
                 }
             }
         }
-
-        val activity = requireActivity()
-        ActivityCompat.requestPermissions(
-            activity,
-            arrayOf(Manifest.permission.READ_CONTACTS),
-            MY_PERMISSIONS_REQUEST_READ_CONTACTS
-        )
 
         photoButton.apply {
             val packageManager: PackageManager = requireActivity().packageManager

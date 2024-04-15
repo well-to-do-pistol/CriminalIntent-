@@ -31,4 +31,10 @@
     <string name="crime_add_button_label">Add Crime</string>
 
     <string name="crime_time_label">Time</string>
+
+    <string name="setTitle">Permission needed</string>
+    <string name="setMessage">This permission is needed to access your contacts. Please enable it in the settings.</string>
+    <string name="setPositiveButton">Go to settings</string>
+    <string name="Cancel">Cancel</string>
+
 </resources>

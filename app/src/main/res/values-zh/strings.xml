@@ -30,4 +30,10 @@
     <string name="crime_add_button_label">添加陋习</string>
 
     <string name="crime_time_label">时间</string>
+
+    <string name="setTitle">需要许可</string>
+    <string name="setMessage">需要此权限才能访问您的联系人。 请在设置中启用它.</string>
+    <string name="setPositiveButton">前往设置</string>
+    <string name="Cancel">取消</string>
+
 </resources>
