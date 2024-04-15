@@ -27,6 +27,16 @@ android {
             )
         }
     }
+
+    //Room 架构导出功能需要一个相对于项目目录的路径，它可以在编译时写入架构文件，而不是在设备上运行时写入架构文件。
+    //**使用项目相对路径**：常见做法是将架构导出放置在项目中的 `schemas` 目录下。 如果该目录不存在，您可以创建该目录并相应地更新您的“build.gradle”文件。 例如：
+    kapt {
+        arguments {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
+    }//此配置告诉 Room 将架构文件保存在项目根目录的“schemas”目录中。 `$projectDir` 是一个 Gradle 属性，指向项目的根目录。
+
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
